@@ -1,0 +1,22 @@
+- name: Configure Ubuntu server
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Copy a text file to the server
+      copy:
+        dest: /home/ubuntu/hello.txt
+        content: |
+          Hello from Ansible!
+          This file was placed here automatically.
+    - name: Update all packages
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+        update_cashe: true
+    - name: Install Wireguard
+      ansible.builtin.apt:
+        name: wireguard
+        state: latest
+
+  
