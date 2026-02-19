@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    ansible = {
+      source  = "ansible/ansible"
+      version = "~> 1.0"
+    }
   }
 }
 
@@ -71,4 +75,9 @@ resource "aws_instance" "ubuntu" {
   tags = {
     Name = "ubuntu-server"
   }
+}
+
+resource "ansible_host" "ubuntu" {
+  name   = aws_instance.ubuntu.public_ip
+  groups = ["webservers"]
 }
