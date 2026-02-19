@@ -47,6 +47,14 @@ resource "aws_security_group" "instance_sg" {
     cidr_blocks = [var.allowed_ssh_cidr]
   }
 
+  ingress {
+    description = "WireGuard VPN"
+    from_port   = 51820
+    to_port     = 51820
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -79,5 +87,11 @@ resource "aws_instance" "ubuntu" {
 
 resource "ansible_host" "ubuntu" {
   name   = aws_instance.ubuntu.public_ip
-  groups = ["webservers"]
+  groups = ["webservers", "vpn"]
+
+  variables = {
+    wireguard_addresses = jsonencode(["10.8.0.2/24"])
+    wireguard_endpoint  = aws_instance.ubuntu.public_ip
+    wireguard_port      = "51820"
+  }
 }

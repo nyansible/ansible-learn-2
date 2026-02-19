@@ -1,22 +1,38 @@
 - name: Configure Ubuntu server
-  hosts: all
+  hosts: webservers
   become: true
 
   tasks:
-    - name: Copy a text file to the server
-      copy:
-        dest: /home/ubuntu/hello.txt
-        content: |
-          Hello from Ansible!
-          This file was placed here automatically.
     - name: Update all packages
       ansible.builtin.apt:
         name: "*"
         state: latest
         update_cache: true
-    - name: Install Wireguard
-      ansible.builtin.apt:
-        name: wireguard
-        state: latest
 
-  
+- name: Set up WireGuard VPN
+  hosts: vpn
+  become: true
+  pre_tasks:
+    - name: Parse wireguard_addresses from JSON string
+      ansible.builtin.set_fact:
+        wireguard_addresses: "{{ wireguard_addresses | from_json }}"
+      when: wireguard_addresses is defined and wireguard_addresses is string and wireguard_addresses is match('^\[.*\]$')
+  roles:
+    - role: githubixx.ansible_role_wireguard
+      wireguard_flush_handlers: true
+
+- name: Configure services over VPN
+  hosts: webservers
+  become: true
+  vars:
+    ansible_host: "10.8.0.2"
+
+  tasks:
+    - name: Wait for VPN connection
+      ansible.builtin.wait_for_connection:
+        timeout: 30
+
+    # Add VPN-dependent tasks below
+    - name: Verify VPN connectivity
+      ansible.builtin.command: ping -c 1 10.8.0.1
+      changed_when: false
