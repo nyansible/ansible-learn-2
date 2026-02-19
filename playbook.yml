@@ -13,7 +13,7 @@
       ansible.builtin.apt:
         name: "*"
         state: latest
-        update_cashe: true
+        update_cache: true
     - name: Install Wireguard
       ansible.builtin.apt:
         name: wireguard
