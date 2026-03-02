@@ -90,8 +90,10 @@ resource "ansible_host" "ubuntu" {
   groups = ["webservers", "vpn"]
 
   variables = {
-    wireguard_addresses = jsonencode(["10.8.0.2/24"])
-    wireguard_endpoint  = aws_instance.ubuntu.public_ip
-    wireguard_port      = "51820"
+    wireguard_addresses   = jsonencode(["10.8.0.2/24"])
+    wireguard_endpoint    = aws_instance.ubuntu.public_ip
+    wireguard_port        = "51820"
+    wireguard_mtu         = "1492"
+    wireguard_allowed_ips = "0.0.0.0/0, ::/0"
   }
 }

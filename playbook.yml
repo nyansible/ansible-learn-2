@@ -24,6 +24,7 @@
 - name: Configure services over VPN
   hosts: webservers
   become: true
+  #gather_facts: false
   vars:
     ansible_host: "10.8.0.2"
 
@@ -36,3 +37,29 @@
     - name: Verify VPN connectivity
       ansible.builtin.command: ping -c 1 10.8.0.1
       changed_when: false
+
+    - name: Enable NAT masquerade for VPN traffic
+      ansible.builtin.iptables:
+        table: nat
+        chain: POSTROUTING
+        out_interface: "{{ ansible_default_ipv4.interface }}"
+        jump: MASQUERADE
+
+    - name: Persist iptables rules
+      ansible.builtin.apt:
+        name: iptables-persistent
+        state: present
+#Lets see if I can write ansible
+
+- name: Allow sysctl forwarding
+  hosts: vpn,webservers
+  become: true
+
+  tasks:
+    - name: sysctl cmd 
+      ansible.builtin.sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        sysctl_set: true
+        reload: true
+#might need ansible to clean up keys after they've been used
